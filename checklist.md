@@ -21,7 +21,7 @@
   pip install -r requirements.txt
   ```
 
-- [ ] **프론트엔드 의존성 설치**:
+- [X] **프론트엔드 의존성 설치**:
   ```bash
   # frontend 폴더로 이동
   cd frontend
@@ -34,18 +34,18 @@
 
 ### ✅ 2. GitHub에 프로젝트 업로드
 
-- [ ] **GitHub 저장소 생성**:
+- [X] **GitHub 저장소 생성**:
   - [GitHub.com](https://github.com)에서 `kis-invest-app`과 같은 이름으로 새로운 Public 저장소를 생성합니다.
 
-- [ ] **Git 명령어 실행**:
+- [X] **Git 명령어 실행**:
   - 프로젝트 최상위 폴더(`C:\Code\KIS Invest`)에서 아래 명령어를 순서대로 실행하여 코드를 푸시합니다.
   ```bash
+  echo "# KISInvset" >> README.md
   git init
-  git add .
   git commit -m "Initial commit: Full backend and frontend structure"
-  git branch -M main
-  git remote add origin https://github.com/YourUsername/YourRepositoryName.git
-  git push -u origin main
+  git branch -M master
+  git remote add origin https://github.com/Young312886/KISInvset.git
+  git push -u origin master
   ```
   - `YourUsername`과 `YourRepositoryName`은 실제 정보로 변경해야 합니다.
 
