@@ -1,20 +1,27 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.core.config import settings
-import os
 
-# Add DATABASE_URL to settings or construct it here
-# Example: postgresql://user:password@host:port/database
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/kis_invest")
+# DATABASE_URL은 settings에서 통합 관리
+DATABASE_URL = settings.DATABASE_URL
 
+engine = create_engine(
+    DATABASE_URL,
+    # PostgreSQL 연결 풀 설정
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,  # 연결 유효성 사전 확인
+)
 
-engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
+
+class Base(DeclarativeBase):
+    pass
+
 
 def get_db():
+    """FastAPI Dependency: 요청마다 DB 세션을 생성하고 사용 후 닫습니다."""
     db = SessionLocal()
     try:
         yield db

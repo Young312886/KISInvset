@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Any
+from typing import List, Any, Dict
 
 from ..database import get_db
 from ..schemas import signal_schema

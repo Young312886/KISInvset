@@ -1,0 +1,18 @@
+# Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+.Python
+env/
+venv/
+
+# Secrets
+.env
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/

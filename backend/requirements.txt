@@ -1,11 +1,22 @@
 fastapi
-uvicorn
+uvicorn[standard]
 gunicorn
 requests
 pydantic-settings
 python-dotenv
 websocket-client
 pandas
+numpy
 SQLAlchemy
 psycopg2-binary
 apscheduler
+# DB Migration
+alembic
+# Fundamental Analysis
+OpenDartReader
+# Security (Auth - Phase 1)
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+# Encryption for API Keys
+cryptography
