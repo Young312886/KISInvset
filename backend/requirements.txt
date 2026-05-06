@@ -3,6 +3,7 @@ uvicorn[standard]
 gunicorn
 requests
 pydantic-settings
+pydantic[email]
 python-dotenv
 websocket-client
 pandas
@@ -16,7 +17,7 @@ alembic
 OpenDartReader
 # Security (Auth - Phase 1)
 python-jose[cryptography]
-passlib[bcrypt]
+bcrypt
 python-multipart
 # Encryption for API Keys
 cryptography

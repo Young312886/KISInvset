@@ -2,8 +2,10 @@
 
 이 문서는 '일목균형표 기반 기술적 분석'에 '기업 펀더멘털 분석'을 결합한 **종합 투자 의사결정 보조 웹 애플리케이션** 프로젝트의 개발 및 고도화를 위한 체크리스트입니다.
 
-## 📊 프로젝트 현재 상태 분석 (2026-04-22)
-- **백엔드**: FastAPI 기반 구조화 완료. KIS API 연동 및 일목균형표 기초 연산 구현. PostgreSQL 모델링(사용자, 자산, 거래, 시그널) 완료.
+## 📊 프로젝트 현재 상태 분석 (2026-05-06)
+- **백엔드**: FastAPI 기반 구조화 완료. KIS API 연동 및 일목균형표 기초 연산 구현. PostgreSQL 모델링(사용자, 자산, 거래, 시그널, 펀더멘털) 완료.
+- **인증**: JWT 기반 회원가입/로그인/토큰 검증 시스템 **완료** (bcrypt 해싱, Bearer 토큰, `/auth/register`, `/auth/login`, `/auth/me` 엔드포인트).
+- **펀더멘털**: DART 연동 서비스, S-RIM 가치평가, Value-Trend 스코어링 엔진 **코드 완료** (DART API Key 발급 후 실사용 가능).
 - **프론트엔드**: React + Tailwind 대시보드 기초 구현. Lightweight-charts 연동 완료.
 - **향후 핵심 목표**: 기술적 분석(차트)에 펀더멘털 분석(재무/가치평가)을 결합하여, **"무엇을(종목 선정)"**과 **"언제(타이밍)"**를 동시에 해결하는 서비스형 포트폴리오로 진화.
 
@@ -37,10 +39,14 @@
   - [x] `OhlcvData` 모델 보강 (`UniqueConstraint` 추가)
   - [x] **[NEW]** `CompanyFundamentals` 테이블 추가 (수익성/가치/성장성/안전성/배당/S-RIM 전 지표)
   - [x] **[NEW]** `ValueTrendScore` 테이블 추가 (복합 점수 결과)
-- [ ] **사용자 인증 시스템 (Auth)** - 다음 개발 대상
-  - [ ] JWT 기반 로그인/회원가입 라우터 (`/auth`) 구현
-  - [ ] `get_current_user` Dependency 구현 및 각 라우터에 적용
-  - [ ] Fernet 암호화를 이용한 실제 API Key 암호화/복호화 구현
+- [x] **사용자 인증 시스템 (Auth)** ✅ 완료
+  - [x] JWT 기반 로그인/회원가입 라우터 (`/auth`) 구현
+    - [x] `POST /auth/register` — 회원가입 (이메일·사용자명 중복 확인, bcrypt 해싱)
+    - [x] `POST /auth/login` — 로그인 JSON (JWT Access Token 발급)
+    - [x] `POST /auth/token` — Swagger UI OAuth2 form-data 로그인
+    - [x] `GET /auth/me` — 현재 로그인 사용자 정보 조회
+  - [x] `get_current_user` Dependency 구현 및 각 라우터에 적용 (`app/api/dependencies.py`)
+  - [x] Fernet 암호화를 이용한 실제 API Key 암호화/복호화 구현 (`encrypt_api_key`, `decrypt_api_key`)
 
 ## ⚙️ 2. 기술적 분석 엔진 (Technical Analysis - Backend)
 - [ ] **데이터 리샘플링 엔진**

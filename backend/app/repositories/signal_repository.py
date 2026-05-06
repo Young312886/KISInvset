@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from .models import AnalysisSignal
+from ..database.models import AnalysisSignal
 from ..schemas.signal_schema import Signal
 
 class AnalysisSignalRepository:

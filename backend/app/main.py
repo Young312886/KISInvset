@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database.connection import Base, engine
-from .routers import signals, assets, fundamentals
+from .routers import signals, assets, fundamentals, auth
 
 # NOTE: Alembic을 도입한 이후로는 아래 create_all을 사용하지 않습니다.
 # 개발 초기 편의를 위해 남겨두었으나, 운영 환경에서는 반드시 주석 처리하세요.
@@ -56,6 +56,4 @@ app.include_router(signals.router, prefix="/signals", tags=["📈 기술적 분�
 app.include_router(assets.router, prefix="/assets", tags=["💼 자산 관리 (Portfolio)"])
 app.include_router(fundamentals.router, prefix="/fundamentals", tags=["🏢 펀더멘털 분석 (DART)"])
 
-# TODO (Phase 1): JWT 인증 라우터 추가
-# from .routers import auth
-# app.include_router(auth.router, prefix="/auth", tags=["🔐 인증 (Auth)"])
+app.include_router(auth.router, prefix="/auth", tags=["🔐 Auth"])
