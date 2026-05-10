@@ -1,43 +1,49 @@
-import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Clock, Activity, BarChart2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, Clock, Activity, BarChart2, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import StockChart, { ChartDataPoint } from '../components/StockChart';
+import FundamentalRadar, { FundamentalDataPoint } from '../components/FundamentalRadar';
+import { getChartData, getFundamentalScore, generateSignal } from '../api/kis';
 
-// Generate mock data for visualization
-const generateMockData = (): ChartDataPoint[] => {
-  const data: ChartDataPoint[] = [];
-  let currentPrice = 80000;
-  let time = new Date('2026-04-01').getTime() / 1000;
-  
-  for (let i = 0; i < 100; i++) {
-    const open = currentPrice + (Math.random() * 1000 - 500);
-    const high = open + Math.random() * 1000;
-    const low = open - Math.random() * 1000;
-    const close = low + Math.random() * (high - low);
-    
-    data.push({
-      time: time as any,
-      open,
-      high,
-      low,
-      close,
-      tenkan_sen: close + (Math.random() * 500 - 250),
-      kijun_sen: close + (Math.random() * 1000 - 500),
-      senkou_span_a: close - 500 + (Math.random() * 400),
-      senkou_span_b: close - 1000 + (Math.random() * 300),
-    });
-    
-    currentPrice = close;
-    time += 86400; // Add 1 day
-  }
-  return data;
-};
+
 
 const StockSnapshot: React.FC = () => {
-  const { symbol } = useParams<{ symbol: string }>();
+  const { symbol = '005930' } = useParams<{ symbol: string }>();
   const [timeframe, setTimeframe] = useState('D');
-  const [mockData] = useState<ChartDataPoint[]>(generateMockData());
+
+  const { data: chartData, isLoading: isLoadingChart } = useQuery({
+    queryKey: ['chart', symbol, timeframe],
+    queryFn: () => getChartData(symbol, timeframe)
+  });
+
+  const { data: signal, isLoading: isLoadingSignal } = useQuery({
+    queryKey: ['signal', symbol, timeframe],
+    queryFn: () => generateSignal(symbol)
+  });
+
+  const { data: fundamental, isLoading: isLoadingFundamental } = useQuery({
+    queryKey: ['fundamental', symbol],
+    queryFn: () => getFundamentalScore(symbol)
+  });
+
+  const isLoading = isLoadingChart || isLoadingSignal || isLoadingFundamental;
+
+  const radarData: FundamentalDataPoint[] = fundamental ? [
+    { subject: '수익성', A: fundamental.profitability_score, fullMark: 100 },
+    { subject: '성장성', A: fundamental.growth_score, fullMark: 100 },
+    { subject: '안전성', A: fundamental.safety_score, fullMark: 100 },
+    { subject: '가치평가', A: fundamental.value_score, fullMark: 100 },
+    { subject: '배당매력', A: fundamental.dividend_score, fullMark: 100 },
+  ] : [];
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[80vh] items-center justify-center">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-500" />
+      </div>
+    );
+  }
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -77,12 +83,21 @@ const StockSnapshot: React.FC = () => {
         
         {/* Signal Badge */}
         <div className="bento-box p-4 flex items-center space-x-4">
-          <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center">
-            <Activity className="text-red-500" size={24} />
+          <div className={`h-12 w-12 rounded-full flex items-center justify-center ${
+            signal?.signal === 'BUY' || signal?.signal === 'STRONG BUY' ? 'bg-red-500/20' : 
+            signal?.signal === 'SELL' ? 'bg-blue-500/20' : 'bg-slate-500/20'
+          }`}>
+            <Activity className={
+              signal?.signal === 'BUY' || signal?.signal === 'STRONG BUY' ? 'text-red-500' : 
+              signal?.signal === 'SELL' ? 'text-blue-500' : 'text-slate-500'
+            } size={24} />
           </div>
           <div>
             <div className="text-sm text-slate-500 dark:text-slate-400">Current Signal</div>
-            <div className="text-xl font-bold text-red-500">STRONG BUY</div>
+            <div className={`text-xl font-bold ${
+              signal?.signal === 'BUY' || signal?.signal === 'STRONG BUY' ? 'text-red-500' : 
+              signal?.signal === 'SELL' ? 'text-blue-500' : 'text-slate-500'
+            }`}>{signal?.signal || 'HOLD'}</div>
           </div>
         </div>
       </motion.div>
@@ -113,7 +128,7 @@ const StockSnapshot: React.FC = () => {
           
           <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center justify-center overflow-hidden relative">
             <div className="absolute inset-0 p-2">
-              <StockChart data={mockData} />
+              {chartData && <StockChart data={chartData as any} />}
             </div>
           </div>
         </motion.div>
@@ -126,19 +141,19 @@ const StockSnapshot: React.FC = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 dark:text-slate-400">Tenkan-sen</span>
-                <span className="font-medium text-slate-900 dark:text-white">81,500</span>
+                <span className="font-medium text-slate-900 dark:text-white">{signal?.details?.tenkan_sen?.toLocaleString() || '-'}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 dark:text-slate-400">Kijun-sen</span>
-                <span className="font-medium text-slate-900 dark:text-white">80,200</span>
+                <span className="font-medium text-slate-900 dark:text-white">{signal?.details?.kijun_sen?.toLocaleString() || '-'}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 dark:text-slate-400">Senkou Span A</span>
-                <span className="font-medium text-slate-900 dark:text-white">79,800</span>
+                <span className="font-medium text-slate-900 dark:text-white">{signal?.details?.senkou_span_a?.toLocaleString() || '-'}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 dark:text-slate-400">Senkou Span B</span>
-                <span className="font-medium text-slate-900 dark:text-white">78,500</span>
+                <span className="font-medium text-slate-900 dark:text-white">{signal?.details?.senkou_span_b?.toLocaleString() || '-'}</span>
               </div>
               
               <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
@@ -151,22 +166,19 @@ const StockSnapshot: React.FC = () => {
           </motion.div>
 
           {/* Fundamental Score */}
-          <motion.div variants={itemVariants} className="bento-box p-6">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">DART Fundamental Score</h3>
-            <div className="flex items-center justify-center py-4">
-              <div className="relative">
-                <svg className="w-32 h-32 transform -rotate-90">
-                  <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100 dark:text-slate-800" />
-                  <circle cx="64" cy="64" r="56" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray="351.85" strokeDashoffset="87.96" className="text-blue-500" />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-white">75</span>
-                  <span className="text-xs text-slate-500">/ 100</span>
-                </div>
-              </div>
+          <motion.div variants={itemVariants} className="bento-box p-6 flex flex-col items-center">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 self-start">DART Fundamental Score</h3>
+            <div className="flex items-center justify-center py-4 w-full h-[250px]">
+              <FundamentalRadar data={radarData} color="#3b82f6" />
             </div>
-            <div className="mt-2 text-center text-sm text-slate-500 dark:text-slate-400">
-              Strong profitability, moderate growth
+            <div className="flex items-center space-x-4 mt-2">
+              <div className="text-center">
+                <span className="text-3xl font-bold text-blue-500">{fundamental?.total_score || '-'}</span>
+                <span className="text-sm text-slate-500">/ 100</span>
+              </div>
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                Grade: <span className="font-bold text-slate-900 dark:text-white">{fundamental?.grade || '-'}</span>
+              </div>
             </div>
           </motion.div>
         </div>
