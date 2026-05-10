@@ -147,6 +147,79 @@ class KISApi:
             print(f"Error fetching OHLCV data: {e}")
             return pd.DataFrame()
 
+    def fetch_minute_ohlcv(self, symbol: str, time_div: str = '30') -> pd.DataFrame:
+        """
+        Fetches minute OHLCV data for a given stock.
+        
+        Args:
+            symbol (str): The stock symbol (e.g., "005930").
+            time_div (str): Minute division ('1', '3', '5', '10', '15', '30', '60'). Default '30'.
+        
+        Returns:
+            pd.DataFrame: A DataFrame with minute OHLCV data.
+        """
+        self._ensure_token()
+        url = f"{self.base_url}/uapi/domestic-stock/v1/quotations/inquire-time-itemchartprice"
+        
+        current_time = datetime.now().strftime('%H%M%S')
+
+        headers = {
+            "Content-Type": "application/json",
+            "authorization": f"Bearer {self.access_token}",
+            "appkey": self.app_key,
+            "appsecret": self.app_secret,
+            "tr_id": "FHKST03010200"
+        }
+        params = {
+            "FID_ETC_CLS_CODE": "",
+            "FID_COND_MRKT_DIV_CODE": "J",
+            "FID_INPUT_ISCD": symbol,
+            "FID_INPUT_HOUR_1": current_time,
+            "FID_PW_DATA_INCU_YN": "N"
+        }
+
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            if data['rt_cd'] != '0':
+                print(f"API Error: {data['msg1']}")
+                return pd.DataFrame()
+
+            ohlcv_list = data['output2']
+            df = pd.DataFrame(ohlcv_list)
+            
+            # Map columns
+            column_map = {
+                'stck_bsop_date': 'date',
+                'stck_cntg_hour': 'time',
+                'stck_oprc': 'open',
+                'stck_hgpr': 'high',
+                'stck_lwpr': 'low',
+                'stck_prpr': 'close',
+                'cntg_vol': 'volume'
+            }
+            df = df.rename(columns=column_map)
+            
+            # Create datetime index
+            df['datetime'] = pd.to_datetime(df['date'] + df['time'], format='%Y%m%d%H%M%S')
+            df = df.set_index('datetime')
+            
+            # Convert to numeric
+            numeric_cols = ['open', 'high', 'low', 'close', 'volume']
+            for col in numeric_cols:
+                df[col] = pd.to_numeric(df[col])
+                
+            df = df.drop(columns=['date', 'time'])
+            
+            # API returns reverse chronological order
+            return df.iloc[::-1]
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching minute OHLCV data: {e}")
+            return pd.DataFrame()
+
     def get_ws_approval_key(self):
         """Gets a temporary approval key for WebSocket connection."""
         self._ensure_token()

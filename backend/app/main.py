@@ -9,6 +9,17 @@ from .routers import signals, assets, fundamentals, auth
 # 대신 'alembic upgrade head' 명령어로 테이블을 생성/관리합니다.
 # Base.metadata.create_all(bind=engine)
 
+from contextlib import asynccontextmanager
+from .core.scheduler import start_scheduler, stop_scheduler
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    start_scheduler()
+    yield
+    # Shutdown
+    stop_scheduler()
+
 app = FastAPI(
     title="KIS Invest Assistant API",
     description=(
@@ -19,6 +30,7 @@ app = FastAPI(
     version="0.2.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # --- CORS 설정 ---

@@ -21,7 +21,9 @@ const FundamentalRadar: React.FC<FundamentalRadarProps> = ({
       <ResponsiveContainer width="100%" height="100%">
         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid stroke="rgba(100, 116, 139, 0.2)" />
+          {/* @ts-ignore */}
           <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
+          {/* @ts-ignore */}
           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
           <Tooltip 
             contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderRadius: '8px', border: 'none', color: '#fff' }}

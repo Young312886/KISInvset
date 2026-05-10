@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType, ISeriesApi, Time } from 'lightweight-charts';
+import { createChart, ColorType, ISeriesApi, Time, CandlestickSeries, LineSeries } from 'lightweight-charts';
 
 export interface ChartDataPoint {
   time: Time;
@@ -67,7 +67,7 @@ const StockChart: React.FC<StockChartProps> = ({ data, colors }) => {
     });
 
     // 1. Candlestick Series
-    const candleSeries = chart.addCandlestickSeries({
+    const candleSeries = chart.addSeries(CandlestickSeries, {
       upColor,
       downColor,
       borderVisible: false,
@@ -86,9 +86,9 @@ const StockChart: React.FC<StockChartProps> = ({ data, colors }) => {
 
     // Helper to add line series
     const addLine = (color: string, key: keyof ChartDataPoint, lineWidth: number = 2) => {
-      const lineSeries = chart.addLineSeries({
+      const lineSeries = chart.addSeries(LineSeries, {
         color,
-        lineWidth,
+        lineWidth: lineWidth as any,
         crosshairMarkerVisible: false,
         lastValueVisible: false,
         priceLineVisible: false,
