@@ -1,12 +1,35 @@
 import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Dashboard from './pages/Dashboard';
+import StockSnapshot from './pages/StockSnapshot';
+import Layout from './components/Layout';
 import './App.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 60 * 1000, // 1 minute
+    },
+  },
+});
 
 function App() {
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <Dashboard />
-    </div>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <div className="dark:bg-slate-900 min-h-screen text-slate-900 dark:text-slate-100 transition-colors duration-300">
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="stock/:symbol" element={<StockSnapshot />} />
+              {/* Other routes will be added here */}
+            </Route>
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

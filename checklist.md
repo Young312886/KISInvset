@@ -49,10 +49,10 @@
   - [x] Fernet 암호화를 이용한 실제 API Key 암호화/복호화 구현 (`encrypt_api_key`, `decrypt_api_key`)
 
 ## ⚙️ 2. 기술적 분석 엔진 (Technical Analysis - Backend)
-- [ ] **데이터 리샘플링 엔진**
-  - [ ] KIS 분봉 데이터를 활용한 다중 타임프레임(4시간봉 등) 생성 로직
-- [ ] **일목균형표 시그널 로직 고도화**
-  - [ ] 구름대 돌파, 쿠모 트위스트, 3역 호전 등 복합 시그널 탐지
+- [x] **데이터 리샘플링 엔진**
+  - [x] KIS 분봉 데이터를 활용한 다중 타임프레임(4시간봉 등) 생성 로직
+- [x] **일목균형표 시그널 로직 고도화**
+  - [x] 구름대 돌파, 쿠모 트위스트, 3역 호전 등 복합 시그널 탐지
 - [ ] **실시간 WebSocket 서비스**
   - [ ] 백엔드 시세 수신 및 프론트엔드 브로드캐스팅
 
@@ -82,15 +82,15 @@
   - [x] `POST /screen`: 퀀트 멀티 팩터 스크리닝
   - [x] `GET /{ticker}/score`: Value-Trend 점수 조회
   - [x] `POST /{ticker}/score/calculate`: 점수 계산 및 저장
-- [ ] **`/fundamentals` 라우터를 `main.py`에 등록** → ✅ 완료
-- [ ] **배치(Batch) 스케줄러 구현** (APScheduler 활용)
-  - [ ] 전체 관심 종목 일괄 데이터 갱신 (매일 장 마감 후 자동 실행)
+- [x] **`/fundamentals` 라우터를 `main.py`에 등록** → ✅ 완료
+- [x] **배치(Batch) 스케줄러 구현** (APScheduler 활용)
+  - [x] 전체 관심 종목 일괄 데이터 갱신 (매일 장 마감 후 자동 실행)
 
 ## 🎨 4. 프론트엔드 UI/UX 고도화 (Frontend)
-- [ ] **디자인 시스템 및 레이아웃 (Premium Aesthetics)**
-  - [ ] 다크/라이트 모드, Glassmorphism, Bento Box 레이아웃 적용
-- [ ] **종목 Snapshot 대시보드 구현 [NEW]**
-  - [ ] 일목균형표 인터랙티브 차트 고도화 (구름대 시각화 완벽 대응)
+- [x] **디자인 시스템 및 레이아웃 (Premium Aesthetics)**
+  - [x] 다크/라이트 모드, Glassmorphism, Bento Box 레이아웃 적용
+- [x] **종목 Snapshot 대시보드 구현 [NEW]**
+  - [x] 일목균형표 인터랙티브 차트 고도화 (구름대 시각화 완벽 대응)
   - [ ] **재무 건강도 레이더 차트** 추가 (수익성, 성장성, 안전성, 활동성, 배당 매력도)
   - [ ] 기술적 시그널과 재무 스코어의 통합 결과 UI (Value-Trend 점수 표시)
 - [ ] **포트폴리오(Ledger) 관리 뷰**

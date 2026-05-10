@@ -1,3 +1,36 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-secondary: #8b5cf6;
+  --color-bg-dark: #0f172a;
+  --color-card-dark: rgba(30, 41, 59, 0.7);
+  --color-up: #ef4444; /* 한국 시장 상승색 (Red) */
+  --color-down: #0ea5e9; /* 한국 시장 하락색 (Blue) */
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased transition-colors duration-300;
+  }
+  
+  /* 다크모드 기본 설정 (추후 클래스 토글 방식 사용) */
+  .dark body {
+    @apply bg-[#0f172a] text-slate-100;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-sm rounded-2xl;
+  }
+  
+  .dark .glass-panel {
+    @apply bg-slate-800/60 backdrop-blur-md border border-slate-700/50 shadow-lg rounded-2xl;
+  }
+
+  .bento-box {
+    @apply glass-panel p-6 overflow-hidden relative;
+  }
+}
