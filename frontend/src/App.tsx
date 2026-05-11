@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import Dashboard from './pages/Dashboard';
 import StockSnapshot from './pages/StockSnapshot';
+import Portfolio from './pages/Portfolio';
+import BacktestReport from './pages/BacktestReport';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -24,6 +26,8 @@ function App() {
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
               <Route path="stock/:symbol" element={<StockSnapshot />} />
+              <Route path="portfolio" element={<Portfolio />} />
+              <Route path="backtest" element={<BacktestReport />} />
               {/* Other routes will be added here */}
             </Route>
           </Routes>

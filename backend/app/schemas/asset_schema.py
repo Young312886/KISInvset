@@ -11,6 +11,8 @@ class AssetCreate(AssetBase):
 class Asset(AssetBase):
     id: int
     account_id: int
+    current_price: float | None = None
+    change: float | None = None
     
     class Config:
         from_attributes = True

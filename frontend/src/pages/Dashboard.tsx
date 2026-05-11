@@ -9,44 +9,107 @@ import WatchlistTable from '../components/dashboard/WatchlistTable';
 import SignalPanel from '../components/dashboard/SignalPanel';
 import PortfolioAllocation from '../components/dashboard/PortfolioAllocation';
 import MarketPulse from '../components/dashboard/MarketPulse';
+import RecentActivity from '../components/dashboard/RecentActivity';
+
+import { getWatchlist, getFundamentalScore, getMultiplePrices, getMarketIndices, getPortfolioAssets, WatchlistItem, SignalData, StockPrice, PortfolioAsset } from '../api/kis';
+import { Skeleton } from "../components/ui/skeleton";
 
 const Dashboard: React.FC = () => {
-  const watchList = [
-    { symbol: '005930', name: '삼성전자', price: 82300, change: 1.5, score: 85, signal: 'STRONG BUY' },
-    { symbol: '000660', name: 'SK하이닉스', price: 178500, change: -0.8, score: 62, signal: 'HOLD' },
-    { symbol: '035420', name: 'NAVER', price: 192000, change: 2.1, score: 78, signal: 'BUY' },
-    { symbol: '373220', name: 'LG에너지솔루션', price: 385000, change: -1.2, score: 45, signal: 'SELL' },
-  ];
+  const [watchList, setWatchList] = React.useState<any[]>([]);
+  const [marketKPIs, setMarketKPIs] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState({
+    watchlist: true,
+    market: true,
+    portfolio: true
+  });
 
-  const recentSignals = [
-    { symbol: '005930', name: '삼성전자', type: '3역 호전 (Triple Bullish)', time: '10 mins ago', strength: 'Strong', color: 'red' },
-    { symbol: '066570', name: 'LG전자', type: '구름대 돌파 (Kumo Breakout)', time: '45 mins ago', strength: 'Medium', color: 'blue' },
-    { symbol: '035720', name: '카카오', type: '기준선 반등 (Kijun Support)', time: '2 hours ago', strength: 'Weak', color: 'purple' },
-  ];
+  const fetchData = async () => {
+    // 1. Fetch Market Indices first for KPIs
+    getMarketIndices().then(indices => {
+      setMarketKPIs(prev => {
+        const updated = [...prev];
+        // KOSPI
+        updated[0] = { 
+          title: 'KOSPI', 
+          value: indices.KOSPI?.current_price?.toLocaleString() || '---', 
+          change: indices.KOSPI?.change_rate || 0, 
+          data: [2710, 2725, 2720, 2740, 2735, indices.KOSPI?.current_price || 2735], 
+          isUp: (indices.KOSPI?.change || 0) > 0 
+        };
+        // KOSDAQ
+        updated[1] = { 
+          title: 'KOSDAQ', 
+          value: indices.KOSDAQ?.current_price?.toLocaleString() || '---', 
+          change: indices.KOSDAQ?.change_rate || 0, 
+          data: [880, 875, 878, 872, 874, indices.KOSDAQ?.current_price || 874], 
+          isUp: (indices.KOSDAQ?.change || 0) > 0 
+        };
+        return updated;
+      });
+      setLoading(prev => ({ ...prev, market: false }));
+    });
 
-  const marketKPIs = [
-    { title: 'KOSPI', value: '2,753.21', change: 1.25, data: [2710, 2725, 2720, 2740, 2735, 2753], isUp: true },
-    { title: 'KOSDAQ', value: '870.45', change: -0.48, data: [880, 875, 878, 872, 874, 870], isUp: false },
-    { title: 'Portfolio Value', value: '₩124.5M', change: 3.8, data: [118, 120, 119, 122, 123, 124.5], isUp: true },
-    { title: 'Active Signals', value: '24', change: 12, data: [15, 18, 16, 20, 22, 24], isUp: true, isCount: true },
-  ];
+    // 2. Fetch Watchlist and then enrich with prices/scores
+    getWatchlist().then(async (watchlistItems) => {
+      const symbols = watchlistItems.map(item => item.symbol);
+      
+      // Fetch prices and fundamental scores in parallel
+      const [prices, scores] = await Promise.all([
+        getMultiplePrices(symbols).catch(() => ({})),
+        Promise.all(symbols.map(s => getFundamentalScore(s).catch(() => null)))
+      ]);
 
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+      const enhancedItems = watchlistItems.map((item, idx) => {
+        const priceData = prices[item.symbol];
+        const scoreData = scores[idx];
+        
+        return {
+          symbol: item.symbol,
+          name: item.company_name,
+          price: priceData?.current_price || 0,
+          change: priceData?.change_rate || 0,
+          score: scoreData?.total_score || 0,
+          signal: scoreData?.grade || 'N/A'
+        };
+      });
+      
+      setWatchList(enhancedItems);
+      setLoading(prev => ({ ...prev, watchlist: false }));
+    });
+
+    // 3. Fetch Portfolio
+    getPortfolioAssets(1).catch(() => []).then(assets => {
+      const totalValue = (assets as PortfolioAsset[]).reduce((sum: number, asset: PortfolioAsset) => 
+        sum + (asset.quantity * (asset.current_price || asset.avg_purchase_price)), 0
+      );
+      
+      setMarketKPIs(prev => {
+        const updated = [...prev];
+        updated[2] = { 
+          title: 'Portfolio Value', 
+          value: `₩${(totalValue / 10000).toFixed(1)}M`, 
+          change: 3.8,
+          data: [118, 120, 119, 122, 123, totalValue / 10000], 
+          isUp: true 
+        };
+        updated[3] = { 
+          title: 'Active Signals', 
+          value: '24', 
+          change: 12, 
+          data: [15, 18, 16, 20, 22, 24], 
+          isUp: true, 
+          isCount: true 
+        };
+        return updated;
+      });
+      setLoading(prev => ({ ...prev, portfolio: false }));
+    });
   };
 
-  const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { type: 'spring', stiffness: 100 }
-    }
-  };
+  React.useEffect(() => {
+    fetchData();
+  }, []);
+
 
   return (
     <motion.div 
@@ -67,8 +130,13 @@ const Dashboard: React.FC = () => {
           </p>
         </div>
         <div className="flex space-x-3">
-          <Button variant="outline" className="rounded-xl shadow-sm border-muted/50 hover:bg-secondary transition-colors">
-            <RefreshCw size={18} className="mr-2" />
+          <Button 
+            variant="outline" 
+            className="rounded-xl shadow-sm border-muted/50 hover:bg-secondary transition-colors"
+            onClick={fetchData}
+            disabled={Object.values(loading).some(v => v)}
+          >
+            <RefreshCw size={18} className={`mr-2 ${Object.values(loading).some(v => v) ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button className="rounded-xl shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground transition-all hover:scale-[1.02] active:scale-[0.98]">
@@ -80,20 +148,33 @@ const Dashboard: React.FC = () => {
 
       {/* Market Overview Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {marketKPIs.map((kpi, idx) => (
-          <motion.div key={idx} variants={itemVariants}>
-            <KPICard {...kpi} />
-          </motion.div>
-        ))}
+        {loading.market ? (
+          Array(4).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-3xl" />
+          ))
+        ) : (
+          marketKPIs.map((kpi, idx) => (
+            <motion.div key={idx} variants={itemVariants}>
+              <KPICard {...kpi} />
+            </motion.div>
+          ))
+        )}
       </div>
 
       {/* Main Content Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <motion.div variants={itemVariants} className="lg:col-span-2">
-          <WatchlistTable watchList={watchList} />
+          {loading.watchlist ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-[400px] rounded-3xl" />
+            </div>
+          ) : (
+            <WatchlistTable watchList={watchList} />
+          )}
         </motion.div>
         <motion.div variants={itemVariants}>
-          <MarketPulse />
+          <RecentActivity />
         </motion.div>
       </div>
 
@@ -103,7 +184,11 @@ const Dashboard: React.FC = () => {
           <SignalPanel signals={recentSignals} />
         </motion.div>
         <motion.div variants={itemVariants}>
-          <PortfolioAllocation />
+          {loading.portfolio ? (
+            <Skeleton className="h-[300px] rounded-3xl" />
+          ) : (
+            <PortfolioAllocation />
+          )}
         </motion.div>
       </div>
     </motion.div>

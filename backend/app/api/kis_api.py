@@ -97,7 +97,8 @@ class KISApi:
             "authorization": f"Bearer {self.access_token}",
             "appkey": self.app_key,
             "appsecret": self.app_secret,
-            "tr_id": "FHKST03010100"
+            "tr_id": "FHKST03010100",
+            "custtype": "P"
         }
         params = {
             "FID_COND_MRKT_DIV_CODE": "J",
@@ -146,6 +147,90 @@ class KISApi:
         except requests.exceptions.RequestException as e:
             print(f"Error fetching OHLCV data: {e}")
             return pd.DataFrame()
+
+    def get_current_price(self, symbol: str) -> dict:
+        """
+        Fetches the current price and change for a given stock.
+        """
+        self._ensure_token()
+        url = f"{self.base_url}/uapi/domestic-stock/v1/quotations/inquire-price"
+        
+        headers = {
+            "Content-Type": "application/json",
+            "authorization": f"Bearer {self.access_token}",
+            "appkey": self.app_key,
+            "appsecret": self.app_secret,
+            "tr_id": "FHKST01010100",
+            "custtype": "P"
+        }
+        params = {
+            "FID_COND_MRKT_DIV_CODE": "J",
+            "FID_INPUT_ISCD": symbol
+        }
+
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            if data['rt_cd'] != '0':
+                return {"error": data['msg1']}
+
+            output = data['output']
+            return {
+                "symbol": symbol,
+                "current_price": float(output['stck_prpr']),
+                "change": float(output['prdy_vrss']),
+                "change_rate": float(output['prdy_ctrt']),
+                "volume": int(output['acml_vol']),
+                "high": float(output['stck_hgpr']),
+                "low": float(output['stck_lwpr']),
+                "open": float(output['stck_oprc']),
+                "last_updated": datetime.now().isoformat()
+            }
+        except Exception as e:
+            print(f"Error fetching current price for {symbol}: {e}")
+            return {"error": str(e)}
+
+    def get_index_price(self, index_code: str) -> dict:
+        """
+        Fetches the current price and change for a given index (e.g., "0001" for KOSPI).
+        """
+        self._ensure_token()
+        url = f"{self.base_url}/uapi/domestic-stock/v1/quotations/inquire-index-price"
+        
+        headers = {
+            "Content-Type": "application/json",
+            "authorization": f"Bearer {self.access_token}",
+            "appkey": self.app_key,
+            "appsecret": self.app_secret,
+            "tr_id": "FHPST01010000",
+            "custtype": "P"
+        }
+        params = {
+            "FID_COND_MRKT_DIV_CODE": "U",
+            "FID_INPUT_ISCD": index_code
+        }
+
+        try:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            if data['rt_cd'] != '0':
+                return {"error": data['msg1']}
+
+            output = data['output']
+            return {
+                "code": index_code,
+                "current_price": float(output['bstp_nmix_prpr']),
+                "change": float(output['bstp_nmix_prdy_vrss']),
+                "change_rate": float(output['bstp_nmix_prdy_ctrt']),
+                "last_updated": datetime.now().isoformat()
+            }
+        except Exception as e:
+            print(f"Error fetching index price for {index_code}: {e}")
+            return {"error": str(e)}
 
     def fetch_minute_ohlcv(self, symbol: str, time_div: str = '30') -> pd.DataFrame:
         """
@@ -279,6 +364,56 @@ class KISApi:
         wst.daemon = True
         wst.start()
         print("WebSocket thread started.")
+
+    def place_order(self, account_no: str, account_product_code: str, symbol: str, order_type: str, price: int, quantity: int, order_side: str = 'BUY') -> dict:
+        """
+        Places a domestic stock order (Buy/Sell).
+        
+        Args:
+            account_no (str): 8-digit account number (CANO).
+            account_product_code (str): 2-digit product code (ACNT_PRDT_CD).
+            symbol (str): Stock symbol (6 digits).
+            order_type (str): '00' for Market price, '01' for Limit price, etc.
+            price (int): Order price (0 for Market price).
+            quantity (int): Order quantity.
+            order_side (str): 'BUY' or 'SELL'.
+        """
+        self._ensure_token()
+        
+        # Determine TR_ID based on side and environment (mock vs real)
+        is_mock = "vts" in self.base_url
+        if order_side == 'BUY':
+            tr_id = "VTTC0802U" if is_mock else "TTTC0802U"
+        else: # SELL
+            tr_id = "VTTC0801U" if is_mock else "TTTC0801U"
+            
+        url = f"{self.base_url}/uapi/domestic-stock/v1/trading/order-cash"
+
+        headers = {
+            "Content-Type": "application/json",
+            "authorization": f"Bearer {self.access_token}",
+            "appkey": self.app_key,
+            "appsecret": self.app_secret,
+            "tr_id": tr_id,
+            "custtype": "P"
+        }
+        
+        body = {
+            "CANO": account_no,
+            "ACNT_PRDT_CD": account_product_code,
+            "PDNO": symbol,
+            "ORD_DVSN": order_type,
+            "ORD_QTY": str(quantity),
+            "ORD_UNPR": str(price)
+        }
+
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(body))
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Error placing {order_side} order for {symbol}: {e}")
+            return {"error": str(e)}
 
 if __name__ == "__main__":
     print("Initializing KIS API to test data fetching and analysis...")

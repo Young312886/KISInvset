@@ -47,6 +47,8 @@ class KisAccount(Base):
     app_key_encrypted = Column(Text, nullable=False)
     app_secret_encrypted = Column(Text, nullable=False)
     account_type = Column(String(20), default="MOCK")  # 'MOCK' or 'REAL'
+    balance = Column(DECIMAL(18, 2), default=0) # 현금 잔고
+    currency = Column(String(10), default="KRW") # 통화
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

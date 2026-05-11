@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LineChart, Briefcase, Settings, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, LineChart, Briefcase, Settings, Moon, Sun, BarChart3 } from 'lucide-react';
 import { create } from 'zustand';
 
 // Simple theme store
@@ -39,6 +39,7 @@ const Layout: React.FC = () => {
     { name: 'Dashboard', path: '/', icon: <LayoutDashboard size={20} /> },
     { name: 'Snapshot', path: '/stock/005930', icon: <LineChart size={20} /> },
     { name: 'Portfolio', path: '/portfolio', icon: <Briefcase size={20} /> },
+    { name: 'Backtest', path: '/backtest', icon: <BarChart3 size={20} /> },
   ];
 
   return (

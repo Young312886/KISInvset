@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database.connection import Base, engine
-from .routers import signals, assets, fundamentals, auth
+from .routers import signals, assets, fundamentals, auth, watchlist, trade_history, market, backtest
 
 # NOTE: Alembic을 도입한 이후로는 아래 create_all을 사용하지 않습니다.
 # 개발 초기 편의를 위해 남겨두었으나, 운영 환경에서는 반드시 주석 처리하세요.
@@ -67,5 +67,9 @@ def health_check():
 app.include_router(signals.router, prefix="/signals", tags=["📈 기술적 분석 (Ichimoku)"])
 app.include_router(assets.router, prefix="/assets", tags=["💼 자산 관리 (Portfolio)"])
 app.include_router(fundamentals.router, prefix="/fundamentals", tags=["🏢 펀더멘털 분석 (DART)"])
+app.include_router(watchlist.router, prefix="/watchlist", tags=["⭐ 관심 종목 (Watchlist)"])
+app.include_router(trade_history.router, prefix="/trade-history", tags=["🧾 매매 기록 (Ledger)"])
+app.include_router(market.router, prefix="/market", tags=["📊 시장 데이터 (Market)"])
+app.include_router(backtest.router, prefix="/backtest", tags=["🧪 전략 백테스트 (Backtest)"])
 
 app.include_router(auth.router, prefix="/auth", tags=["🔐 Auth"])

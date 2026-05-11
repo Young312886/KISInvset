@@ -2,8 +2,25 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Progress } from "../ui/progress";
 import { TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { cn } from "../../lib/utils";
+
+import { getMarketIndices } from '../../api/kis';
 
 const MarketPulse: React.FC = () => {
+  const [indices, setIndices] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    const fetchIndices = async () => {
+      try {
+        const data = await getMarketIndices();
+        setIndices(data);
+      } catch (error) {
+        console.error("Failed to fetch indices", error);
+      }
+    };
+    fetchIndices();
+  }, []);
+
   return (
     <Card className="bento-box p-0 border-none">
       <CardHeader className="p-6 pb-2 flex flex-row items-center justify-between">
@@ -11,6 +28,34 @@ const MarketPulse: React.FC = () => {
         <Info size={16} className="text-muted-foreground cursor-help" />
       </CardHeader>
       <CardContent className="p-6 pt-2">
+        {/* Indices Section */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">KOSPI</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-black">{indices?.KOSPI?.current_price?.toLocaleString() || '---'}</span>
+              <span className={cn(
+                "text-xs font-bold",
+                (indices?.KOSPI?.change || 0) > 0 ? "text-red-500" : "text-blue-500"
+              )}>
+                {indices?.KOSPI?.change_rate > 0 ? '+' : ''}{indices?.KOSPI?.change_rate}%
+              </span>
+            </div>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">KOSDAQ</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-xl font-black">{indices?.KOSDAQ?.current_price?.toLocaleString() || '---'}</span>
+              <span className={cn(
+                "text-xs font-bold",
+                (indices?.KOSDAQ?.change || 0) > 0 ? "text-red-500" : "text-blue-500"
+              )}>
+                {indices?.KOSDAQ?.change_rate > 0 ? '+' : ''}{indices?.KOSDAQ?.change_rate}%
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div className="flex justify-between items-end mb-4">
           <div className="flex flex-col">
             <span className="text-3xl font-black text-red-500 flex items-center">

@@ -31,10 +31,15 @@ class AnalysisService:
         # Convert NaN to None for JSON compatibility
         ichimoku_df = ichimoku_df.replace({np.nan: None})
         
-        # Reset index to make 'date' a regular column
+        # Reset index and ensure the column name is 'date' for the frontend
         ichimoku_df = ichimoku_df.reset_index()
-
+        if 'datetime' in ichimoku_df.columns:
+            ichimoku_df = ichimoku_df.rename(columns={'datetime': 'date'})
+        elif 'index' in ichimoku_df.columns:
+            ichimoku_df = ichimoku_df.rename(columns={'index': 'date'})
+            
         return ichimoku_df.to_dict(orient='records')
+
 
     def generate_signal(self, symbol: str, timeframe: str) -> dict:
         # 1. Fetch data

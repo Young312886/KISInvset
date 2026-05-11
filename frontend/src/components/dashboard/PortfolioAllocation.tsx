@@ -2,14 +2,44 @@ import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../ui/card";
 
-const data = [
-  { name: 'Samsung Electronics', value: 45, color: '#ef4444' },
-  { name: 'SK Hynix', value: 25, color: '#f97316' },
-  { name: 'NAVER', value: 15, color: '#22c55e' },
-  { name: 'Cash', value: 15, color: '#94a3b8' },
-];
+import { getPortfolioAssets, PortfolioAsset } from '../../api/kis';
+
+const COLORS = ['#ef4444', '#f97316', '#22c55e', '#3b82f6', '#8b5cf6', '#94a3b8'];
 
 const PortfolioAllocation: React.FC = () => {
+  const [data, setData] = React.useState<any[]>([]);
+  const [totalValue, setTotalValue] = React.useState(0);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const assets = await getPortfolioAssets(1); // Hardcoded account ID
+        let total = 0;
+        const processedData = assets.map((asset, idx) => {
+          const value = asset.quantity * (asset.current_price || asset.avg_purchase_price);
+          total += value;
+          return {
+            name: asset.company_name,
+            value: value,
+            color: COLORS[idx % COLORS.length]
+          };
+        });
+        
+        // Convert value to percentage for the pie chart display if needed, 
+        // but Recharts handles raw values fine.
+        setData(processedData);
+        setTotalValue(total);
+      } catch (error) {
+        console.error("Failed to fetch portfolio data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <Card className="bento-box p-0 border-none h-full flex flex-col">
       <CardHeader className="p-8 pb-4">
@@ -43,6 +73,7 @@ const PortfolioAllocation: React.FC = () => {
                   boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' 
                 }}
                 itemStyle={{ color: '#fff' }}
+                formatter={(value: any) => `₩${Number(value).toLocaleString()}`}
               />
               <Legend 
                 verticalAlign="bottom" 
@@ -56,7 +87,7 @@ const PortfolioAllocation: React.FC = () => {
         <div className="mt-4 w-full space-y-3">
           <div className="flex justify-between items-center p-3 rounded-2xl bg-secondary/30 border border-muted/20">
             <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Total Value</span>
-            <span className="text-lg font-black text-foreground">₩124,500,000</span>
+            <span className="text-lg font-black text-foreground">₩{totalValue.toLocaleString()}</span>
           </div>
         </div>
       </CardContent>
