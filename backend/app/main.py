@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database.connection import Base, engine
-from .routers import signals, assets, fundamentals, auth, watchlist, trade_history, market, backtest
+from .routers import signals, assets, fundamentals, auth, watchlist, trade_history, market, backtest, websockets
 
 # NOTE: Alembic을 도입한 이후로는 아래 create_all을 사용하지 않습니다.
 # 개발 초기 편의를 위해 남겨두었으나, 운영 환경에서는 반드시 주석 처리하세요.
@@ -11,13 +11,16 @@ from .routers import signals, assets, fundamentals, auth, watchlist, trade_histo
 
 from contextlib import asynccontextmanager
 from .core.scheduler import start_scheduler, stop_scheduler
+from .services.market_stream_service import market_stream
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     start_scheduler()
+    await market_stream.start()
     yield
     # Shutdown
+    await market_stream.stop()
     stop_scheduler()
 
 app = FastAPI(
@@ -73,3 +76,4 @@ app.include_router(market.router, prefix="/market", tags=["📊 시장 데이터
 app.include_router(backtest.router, prefix="/backtest", tags=["🧪 전략 백테스트 (Backtest)"])
 
 app.include_router(auth.router, prefix="/auth", tags=["🔐 Auth"])
+app.include_router(websockets.router, prefix="/ws", tags=["🔌 WebSockets"])

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from "../../lib/utils";
 import { Button } from "../ui/button";
@@ -19,6 +19,34 @@ interface WatchlistItem {
 interface WatchlistTableProps {
   watchList: WatchlistItem[];
 }
+
+const PriceCell: React.FC<{ price: number }> = ({ price }) => {
+  const [flashColor, setFlashColor] = useState<'text-red-500' | 'text-blue-500' | 'text-foreground'>('text-foreground');
+  const prevPriceRef = useRef<number>(price);
+
+  useEffect(() => {
+    if (price !== prevPriceRef.current) {
+      if (price > prevPriceRef.current) {
+        setFlashColor('text-red-500'); // Korean market: red is up
+      } else if (price < prevPriceRef.current) {
+        setFlashColor('text-blue-500'); // Korean market: blue is down
+      }
+      
+      const timer = setTimeout(() => {
+        setFlashColor('text-foreground');
+      }, 500); // flash duration
+      
+      prevPriceRef.current = price;
+      return () => clearTimeout(timer);
+    }
+  }, [price]);
+
+  return (
+    <TableCell className={cn("text-right font-bold transition-colors duration-300", flashColor)}>
+      ₩{price.toLocaleString()}
+    </TableCell>
+  );
+};
 
 const WatchlistTable: React.FC<WatchlistTableProps> = ({ watchList }) => {
   return (
@@ -57,11 +85,11 @@ const WatchlistTable: React.FC<WatchlistTableProps> = ({ watchList }) => {
                     </div>
                   </Link>
                 </TableCell>
-                <TableCell className="text-right font-bold text-foreground">₩{stock.price.toLocaleString()}</TableCell>
+                <PriceCell price={stock.price} />
                 <TableCell className="text-right">
                   <div className={cn(
-                    "text-sm font-black",
-                    stock.change > 0 ? "text-red-500" : "text-blue-500"
+                    "text-sm font-black transition-colors duration-300",
+                    stock.change > 0 ? "text-red-500" : stock.change < 0 ? "text-blue-500" : "text-foreground"
                   )}>
                     {stock.change > 0 ? '+' : ''}{stock.change}%
                   </div>

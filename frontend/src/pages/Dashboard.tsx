@@ -13,6 +13,8 @@ import RecentActivity from '../components/dashboard/RecentActivity';
 
 import { getWatchlist, getFundamentalScore, getMultiplePrices, getMarketIndices, getPortfolioAssets, WatchlistItem, SignalData, StockPrice, PortfolioAsset } from '../api/kis';
 import { Skeleton } from "../components/ui/skeleton";
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useMarketStore } from '../store/marketStore';
 
 const Dashboard: React.FC = () => {
   const [watchList, setWatchList] = React.useState<any[]>([]);
@@ -22,6 +24,9 @@ const Dashboard: React.FC = () => {
     market: true,
     portfolio: true
   });
+
+  const { subscribe } = useWebSocket();
+  const realtimePrices = useMarketStore(state => state.realtimePrices);
 
   const fetchData = async () => {
     // 1. Fetch Market Indices first for KPIs
@@ -62,6 +67,9 @@ const Dashboard: React.FC = () => {
       const enhancedItems = watchlistItems.map((item, idx) => {
         const priceData = prices[item.symbol];
         const scoreData = scores[idx];
+        
+        // Subscribe to real-time price updates
+        subscribe(item.symbol);
         
         return {
           symbol: item.symbol,
@@ -170,7 +178,13 @@ const Dashboard: React.FC = () => {
               <Skeleton className="h-[400px] rounded-3xl" />
             </div>
           ) : (
-            <WatchlistTable watchList={watchList} />
+            <WatchlistTable 
+              watchList={watchList.map(item => ({
+                ...item,
+                price: realtimePrices[item.symbol]?.price || item.price,
+                change: realtimePrices[item.symbol]?.change_rate || item.change
+              }))} 
+            />
           )}
         </motion.div>
         <motion.div variants={itemVariants}>

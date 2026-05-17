@@ -30,8 +30,8 @@
   - [x] `alembic.ini`, `alembic/env.py`, `alembic/script.py.mako` 생성
   - [x] `env.py`에서 `.env`의 `DATABASE_URL` 자동 주입 연동
   - [x] `ALEMBIC_GUIDE.md` 문서 작성
-  - [ ] 최초 마이그레이션 파일 생성 (`alembic revision --autogenerate -m "initial_schema"`)
-  - [ ] DB에 실제 적용 (`alembic upgrade head`)
+  - [x] 최초 마이그레이션 파일 생성 (`alembic revision --autogenerate -m "initial_schema"`)
+  - [x] DB에 실제 적용 (`alembic upgrade head`)
 - [x] **데이터베이스 모델 전면 확장** (`app/database/models.py`)
   - [x] `User` 모델 보강 (`is_active`, `updated_at`, `watchlist` 관계)
   - [x] `KisAccount` 모델 보강 (`account_type`, 관계 정리)
@@ -59,8 +59,8 @@
 - [x] **실시간 시세 조회 성능 최적화**
   - [x] `ThreadPoolExecutor` 기반 다중 종목 현재가 병렬 페칭 구현
   - [x] KIS API `custtype: P` 헤더 및 지수 조회 파라미터 보정
-- [ ] **실시간 WebSocket 서비스**
-  - [ ] 백엔드 시세 수신 및 프론트엔드 브로드캐스팅
+- [x] **실시간 WebSocket 서비스**
+  - [x] 백엔드 시세 수신 및 프론트엔드 브로드캐스팅 (`ConnectionManager`, `MarketStreamService` 구현)
 
 ## 🏢 3. 펀더멘털 분석 엔진 (Fundamental Analysis - Backend)
 
@@ -127,9 +127,10 @@
   - [x] 백테스팅 API 엔드포인트 개설 (`/backtest/run`)
   - [x] **[NEW]** 시각화 리포트 및 결과 대시보드 구축 (`BacktestReport.tsx`)
 - [ ] **테스트 및 CI/CD 환경 구축**
-  - [ ] 핵심 분석 로직(S-RIM, 일목)에 대한 Pytest 작성
-  - [ ] GitHub Actions (백엔드 GCP Cloud Run 배포)
-  - [ ] Vercel (프론트엔드 배포)
+  - [x] 핵심 분석 로직(S-RIM, 일목균형표)에 대한 Pytest 작성
+  - [x] GCP Cloud Run / Vercel 기반 CI/CD 환경 구축 및 스테이징 배포
+  - [ ] DART API Key 실제 발급 후 연동 테스트
+  - [ ] 실제 주문/매수/매도 로직 모의투자 테스트 및 안정성 확보(Roadmap)
 
 ---
 
