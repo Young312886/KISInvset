@@ -10,11 +10,35 @@ import SignalPanel from '../components/dashboard/SignalPanel';
 import PortfolioAllocation from '../components/dashboard/PortfolioAllocation';
 import MarketPulse from '../components/dashboard/MarketPulse';
 import RecentActivity from '../components/dashboard/RecentActivity';
+import AIBriefingCard from '../components/dashboard/AIBriefingCard';
 
 import { getWatchlist, getFundamentalScore, getMultiplePrices, getMarketIndices, getPortfolioAssets, WatchlistItem, SignalData, StockPrice, PortfolioAsset } from '../api/kis';
 import { Skeleton } from "../components/ui/skeleton";
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useMarketStore } from '../store/marketStore';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants: Variants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: "spring", stiffness: 300, damping: 24 }
+  }
+};
+
+const recentSignals = [
+  { symbol: '005930', name: '삼성전자', type: 'BUY SIGNAL', time: '2h ago', strength: 'Strong', color: 'red' },
+  { symbol: '000660', name: 'SK하이닉스', type: 'BUY SIGNAL', time: '4h ago', strength: 'Medium', color: 'red' },
+  { symbol: '035420', name: 'NAVER', type: 'SELL SIGNAL', time: '1d ago', strength: 'Strong', color: 'blue' },
+];
 
 const Dashboard: React.FC = () => {
   const [watchList, setWatchList] = React.useState<any[]>([]);
@@ -65,7 +89,7 @@ const Dashboard: React.FC = () => {
       ]);
 
       const enhancedItems = watchlistItems.map((item, idx) => {
-        const priceData = prices[item.symbol];
+        const priceData = (prices as Record<string, StockPrice>)[item.symbol];
         const scoreData = scores[idx];
         
         // Subscribe to real-time price updates
@@ -187,8 +211,9 @@ const Dashboard: React.FC = () => {
             />
           )}
         </motion.div>
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants} className="space-y-8">
           <RecentActivity />
+          <AIBriefingCard symbol="005930" />
         </motion.div>
       </div>
 

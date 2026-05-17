@@ -175,9 +175,9 @@ export const getPortfolioAssets = async (accountId: number): Promise<PortfolioAs
     } catch (e) {
         console.warn("Using mock portfolio data due to API error", e);
         return [
-            { id: 1, symbol: '005930', company_name: '삼성전자', quantity: 10, avg_purchase_price: 75000, current_price: 82300 },
-            { id: 2, symbol: '000660', company_name: 'SK하이닉스', quantity: 5, avg_purchase_price: 160000, current_price: 178500 },
-            { id: 3, symbol: '035420', company_name: 'NAVER', quantity: 20, avg_purchase_price: 200000, current_price: 192000 },
+            { id: 1, symbol: '005930', company_name: '삼성전자', quantity: 10, avg_purchase_price: 75000, current_price: 82300, pnl_amount: 73000, pnl_rate: 9.73 },
+            { id: 2, symbol: '000660', company_name: 'SK하이닉스', quantity: 5, avg_purchase_price: 160000, current_price: 178500, pnl_amount: 92500, pnl_rate: 11.56 },
+            { id: 3, symbol: '035420', company_name: 'NAVER', quantity: 20, avg_purchase_price: 200000, current_price: 192000, pnl_amount: -160000, pnl_rate: -4.00 },
         ];
     }
 };

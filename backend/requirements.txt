@@ -21,3 +21,4 @@ bcrypt
 python-multipart
 # Encryption for API Keys
 cryptography
+google-generativeai

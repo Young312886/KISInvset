@@ -2,13 +2,14 @@
 
 이 문서는 '일목균형표 기반 기술적 분석'에 '기업 펀더멘털 분석'을 결합한 **종합 투자 의사결정 보조 웹 애플리케이션** 프로젝트의 개발 및 고도화를 위한 체크리스트입니다.
 
-## 📊 프로젝트 현재 상태 분석 (2026-05-12)
+## 📊 프로젝트 현재 상태 분석 (2026-05-17)
 
-- **백엔드**: FastAPI 기반 구조화 완료. KIS API 연동(병렬 처리 최적화) 및 일목균형표 기초 연산 구현. PostgreSQL 모델링 완료.
+- **백엔드**: FastAPI 기반 구조화 완료. KIS API 연동(병렬 처리 최적화) 및 일목균형표 연산 구현. **켈리 공식 기반 포트폴리오 비중 조절**, **50일/200일 이평선 기반 시장 국면 감지**, **Google Gemini API 기반 AI 투자 브리핑 시스템 구축 완료**.
 - **인증/보안**: JWT 기반 인증 및 **Fernet 기반 API 키 암호화 저장 완료**.
 - **펀더멘털**: DART 연동 서비스, S-RIM 가치평가, Value-Trend 스코어링 엔진 완료.
-- **프론트엔드**: React + Tailwind 대시보드 고도화 중. **비동기 데이터 로딩 구조 개선 완료**.
-- **향후 핵심 목표**: 기술적 분석(차트)에 펀더멘털 분석(재무/가치평가)을 결합하여, **"무엇을(종목 선정)"**과 **"언제(타이밍)"**를 동시에 해결하는 서비스형 포트폴리오로 진화.
+- **프론트엔드**: React + Tailwind 대시보드 고도화 완료. **비동기 데이터 로딩 및 Skeleton UI 적용**, **AI Insights 벤토 박스 대시보드 카드 연동 완료**.
+- **품질 관리**: Pytest 기반으로 S-RIM, 일목균형표, 백테스트 엔진, 포트폴리오 관리 핵심 모듈 단위 테스트 100% 통과 검증 완료.
+- **향후 핵심 목표**: 모의투자 연동 테스트 환경 구축 및 안정적인 프로덕션 배포 파이프라인 마무리.
 
 ---
 
@@ -126,6 +127,13 @@
   - [x] 과거 OHLCV 기반 전략 시뮬레이션 환경 구축 (`BacktestService`)
   - [x] 백테스팅 API 엔드포인트 개설 (`/backtest/run`)
   - [x] **[NEW]** 시각화 리포트 및 결과 대시보드 구축 (`BacktestReport.tsx`)
+- [x] **고도화된 포트폴리오 관리 및 AI 브리핑 시스템 [NEW]**
+  - [x] **시장 국면 감지 엔진 (Market Regime Detection)**: 50일/200일 이평선(SMA) 기반 BULL/BEAR/SIDEWAYS 감지 및 가중치 동적 산출 구현 (`PortfolioManagementService`)
+  - [x] **켈리 공식 기반 자금 관리 (Kelly Criterion Position Sizing)**: 백테스트 승률/손익비 기반 Fractional Kelly 권장 투자 비중 연산 구현 (`PortfolioManagementService`)
+  - [x] **Google Gemini AI 브리핑 시스템**: `gemini-1.5-flash` 모델 기반 시장 국면, 켈리 비중, 백테스트 승률, 펀더멘털 점수 통합 투자 논거(Briefing) 생성 API 구현 (`AIService`, `/ai/briefing/{symbol}`)
+  - [x] **프론트엔드 AI Insights 대시보드 연동**: 대시보드 Bento Box 레이아웃 내 AI 브리핑 카드 및 권장 비중/시장 국면 시각화 구현 (`AIBriefingCard.tsx`, `ai.ts`)
+  - [x] **포트폴리오 평가 손익(P&L) 정보 보강**: 보유 자산 리스트에 평가 손익액 및 수익률 정보 추가 (`kis.ts`, `Portfolio.tsx`)
+  - [x] **신규 백테스팅 및 포트폴리오 관리 검증용 Pytest 작성**: `test_backtest_service.py`, `test_portfolio_management.py` 추가 및 테스트 100% 통과 완료 (`pytest`)
 - [ ] **테스트 및 CI/CD 환경 구축**
   - [x] 핵심 분석 로직(S-RIM, 일목균형표)에 대한 Pytest 작성
   - [x] GCP Cloud Run / Vercel 기반 CI/CD 환경 구축 및 스테이징 배포

@@ -26,7 +26,13 @@ const BacktestReport: React.FC = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await runBacktest(symbol, strategy);
+      const endDateObj = new Date();
+      const startDateObj = new Date();
+      startDateObj.setFullYear(endDateObj.getFullYear() - 1);
+      const startDate = startDateObj.toISOString().split('T')[0];
+      const endDate = endDateObj.toISOString().split('T')[0];
+      
+      const data = await runBacktest(symbol, startDate, endDate, strategy);
       setResult(data);
     } catch (err: any) {
       setError(err.message || 'Backtest failed');

@@ -56,44 +56,72 @@ class BacktestService:
                         "date": date.strftime('%Y-%m-%d'),
                         "type": "BUY",
                         "price": price,
-                        "shares": shares_to_buy,
+                        "quantity": shares_to_buy,
                         "cost": cost
                     })
             
             elif signal == -1 and shares > 0: # Sell signal
                 revenue = shares * price
                 cash += revenue
+                
+                # Find matching buy to calculate profit
+                last_buy = next((t for t in reversed(trades) if t["type"] == "BUY"), None)
+                profit = revenue - (shares * last_buy["price"]) if last_buy else 0
+                profit_pct = (profit / (shares * last_buy["price"])) if last_buy else 0
+                
                 trades.append({
                     "date": date.strftime('%Y-%m-%d'),
                     "type": "SELL",
                     "price": price,
-                    "shares": shares,
-                    "revenue": revenue
+                    "quantity": shares,
+                    "revenue": revenue,
+                    "profit": profit,
+                    "profit_pct": profit_pct
                 })
                 shares = 0
 
             current_value = cash + (shares * price)
             portfolio_history.append({
                 "date": date.strftime('%Y-%m-%d'),
-                "value": current_value,
-                "price": price
+                "portfolio_value": current_value,
+                "close": price
             })
 
         final_value = cash + (shares * df.iloc[-1]['close'])
         total_return = ((final_value - initial_cash) / initial_cash) * 100
         
+        # Calculate Benchmark Return
+        initial_price = df.iloc[0]['close']
+        final_price = df.iloc[-1]['close']
+        benchmark_return_pct = ((final_price - initial_price) / initial_price) * 100
+
         # Calculate MDD
-        values = [p['value'] for p in portfolio_history]
+        values = [p['portfolio_value'] for p in portfolio_history]
         peak = np.maximum.accumulate(values)
         drawdown = (values - peak) / peak
         mdd = np.min(drawdown) * 100
+        
+        # Calculate Win Rate
+        sell_trades = [t for t in trades if t["type"] == "SELL"]
+        winning_trades = [t for t in sell_trades if t.get("profit", 0) > 0]
+        win_rate = (len(winning_trades) / len(sell_trades)) * 100 if sell_trades else 0
+        
+        # Calculate Sharpe Ratio
+        df_history = pd.DataFrame(portfolio_history)
+        df_history['daily_return'] = df_history['portfolio_value'].pct_change()
+        risk_free_rate = 0.035 / 252 # Assumed 3.5% annual risk-free rate
+        excess_returns = df_history['daily_return'] - risk_free_rate
+        sharpe_ratio = np.sqrt(252) * (excess_returns.mean() / excess_returns.std()) if excess_returns.std() > 0 else 0
 
         return {
             "symbol": symbol,
             "initial_cash": initial_cash,
             "final_value": final_value,
             "total_return_pct": total_return,
+            "benchmark_return_pct": benchmark_return_pct,
             "mdd_pct": mdd,
+            "win_rate": win_rate,
+            "sharpe_ratio": float(sharpe_ratio),
             "trades_count": len(trades),
             "history": portfolio_history,
             "trades": trades
